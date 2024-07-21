@@ -3,6 +3,12 @@ from bs4 import BeautifulSoup
 import time
 import random
 import links
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
+from requests.exceptions import RequestException
+
+prices = open("prices.csv", "a");
+
 
 def get_random_user_agent():
     user_agents = [
@@ -111,7 +117,9 @@ def get_random_user_agent():
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.75 Safari/537.36",
 
     ]
-    return random.choice(user_agents)
+
+    random_num = random.randint(0, len(user_agents) - 1)
+    return user_agents[random_num]
 
 def get_random_headers():
     return {
@@ -129,40 +137,49 @@ def get_random_headers():
         'Cache-Control': 'max-age=0',
     }
 
-def get_amazon_price(url):
+def get_amazon_price(url, max_retries=3, backoff_factor=0.3):
+    session = requests.Session()
+    retry = Retry(total=max_retries,
+                  backoff_factor=backoff_factor,
+                  status_forcelist=[500, 502, 503, 504])
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+
     headers = get_random_headers()
 
-    start_time = time.time()
-
-    response = requests.get(url, headers=headers)
-
-    end_time = time.time()
-
-    elapsed_time = end_time - start_time
-
-    print(f"Elapsed time: {elapsed_time:.3} seconds")
-
-    soup = BeautifulSoup(response.content, 'html.parser')
+    try:
+        
+        time.sleep(random.uniform(1, 3))
+        
+        start_time = time.time()
+        response = session.get(url, headers=headers, timeout=10)
+        end_time = time.time()
+        response.raise_for_status() 
+        elapsed_time = end_time - start_time
     
+        soup = BeautifulSoup(response.content, 'html.parser')
+        
+        price = None
+        price_whole = soup.find('span', class_='a-price-whole')
+        price_fraction = soup.find('span', class_='a-price-fraction')
+        if price_whole and price_fraction:
+            price = f"{price_whole.get_text().strip()}{price_fraction.get_text().strip()}"
+                 
+        return price
+
+    except RequestException as e:
+        print(f"An error occurred while fetching the URL: {url}")
+        print(f"Error details: {str(e)}")
+        return None
+
+for i in range(len(links.links)):
+    start_time = time.time()
+    link = links.links[i]
     price = None
-    price_whole = soup.find('span', class_='a-price-whole')
-    price_fraction = soup.find('span', class_='a-price-fraction')
-    if price_whole and price_fraction:
-        price = f"{price_whole.get_text().strip()}{price_fraction.get_text().strip()}"
-
-    if price == None:
-        # print the whole page content into error.html file
-        with open("error.html", "w", encoding="utf-8") as file:
-            file.write(soup.prettify())    
-
-    return price
-
-# url = input("Enter the Amazon product URL: ")
-# price = get_amazon_price(url)
-# print(f"The price is: {price}")
-# print()
-
-for link in links.links:
-    price = get_amazon_price(link)
-    print(f"The price is: {price}")
-    print()
+    while price == None:
+        price = get_amazon_price(link)
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print(f"Elapsed time: {elapsed_time:.4f} seconds")
+    prices.write(f"{i}, {price}, {elapsed_time:.2}\n")
