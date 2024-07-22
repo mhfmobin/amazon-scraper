@@ -65,46 +65,60 @@
 
 <body>
     <div class="container mt-5">
-        <h1 class="text-center mb-4">Amazon Product Viewer</h1>
+        <div class="row mb-5">
+            <h1 class="text-center mb-4">Amazon Product Viewer</h1>
 
-        <form id="productForm">
-            <div class="row justify-content-center">
-                <div class="col-md-8">
-                    <div class="input-group mb-3">
-                        <input type="text" id="productUrl" class="form-control" placeholder="Amazon Product URL">
-                        <button class="btn btn-primary" type="submit" id="viewProduct">View Product</button>
+            <form id="productForm">
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <div class="input-group mb-3">
+                            <input type="text" id="productUrl" class="form-control" placeholder="Amazon Product URL">
+                            <button class="btn btn-primary" type="submit" id="viewProduct">View Product</button>
+                        </div>
+                    </div>
+
+                </div>
+            </form>
+
+            <div id="loadingBox" class="loading-box">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Loading product information...</p>
+            </div>
+
+            <div id="errorMessage" class="alert alert-danger mt-3" style="display: none;"></div>
+
+        </div>
+
+        <div class="row" id="productInfo" style="display: none;">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header text-center h3">Product Information</div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-8">
+                                <p id="productTitle" class="mb-3"></p>
+                                <h3>Price:</h3>
+                                <h3><span id="productPriceAed"></span> <small>AED</small> </h3>
+                                <h3><span id="productPriceToman"></span> <small>Toman</small> </h3>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-center">
+                                    <img id="mainImage" src="" alt="Product Image">
+                                </div>
+            
+                                <div class="gallery" id="imageGallery"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-            </div>
-        </form>
-
-        <div id="loadingBox" class="loading-box">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-            <p class="mt-2">Loading product information...</p>
-        </div>
-
-        <div id="errorMessage" class="alert alert-danger mt-3" style="display: none;"></div>
-
-        <div id="productInfo" class="product-card mt-4" style="display: none;">
-            <h2 class="text-center mb-4">Product Information</h2>
-
-            <div class="text-center">
-                <img id="mainImage" src="" alt="Product Image">
-            </div>
-
-            <div class="gallery" id="imageGallery"></div>
-
-            <div class="mt-4">
-                <p id="productTitle" class="mb-3"></p>
-                <h3>Price:</h3>
-                <h3><span id="productPriceAed"></span> <small>AED</small> </h3>
-                <h3><span id="productPriceToman"></span> <small>Toman</small> </h3>
-                <!-- <p><strong>ASIN:</strong> <span id="productAsin"></span></p> -->
+                
             </div>
         </div>
+
+
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -153,27 +167,27 @@
                 },
                 body: JSON.stringify({ url: url, token: csrfToken }),
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.valid) {
-                    errorMessage.style.display = 'none';
-                    productInfo.style.display = 'block';
-                    productTitle.textContent = data.title;
-                    productPriceAed.textContent = data.price_aed;
-                    productPriceToman.textContent = data.price_toman;
-                    productInfo.style.display = 'block';
-                    loadingBox.style.display = 'none';
-                    if (data.images.length > 0) {
-                        updateGallery(data.images);
+                .then(response => response.json())
+                .then(data => {
+                    if (data.valid) {
+                        errorMessage.style.display = 'none';
+                        productInfo.style.display = 'block';
+                        productTitle.textContent = data.title;
+                        productPriceAed.textContent = data.price_aed;
+                        productPriceToman.textContent = data.price_toman;
+                        productInfo.style.display = 'block';
+                        loadingBox.style.display = 'none';
+                        if (data.images.length > 0) {
+                            updateGallery(data.images);
+                        }
+                    } else {
+                        showError(data.error || 'Invalid Amazon.ae URL');
                     }
-                } else {
-                    showError(data.error || 'Invalid Amazon.ae URL');
-                }
-            })
-            .catch(error => {
-                showError('An error occurred while processing your request');
-                console.error('Error:', error);
-            });
+                })
+                .catch(error => {
+                    showError('An error occurred while processing your request');
+                    console.error('Error:', error);
+                });
         }
 
         function showError(message) {
