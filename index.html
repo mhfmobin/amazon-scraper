@@ -153,15 +153,16 @@
             const productTitle = document.getElementById('productTitle');
             const loadingBox = document.getElementById('loadingBox');
             const urlRegex = /https?:\/\/(www\.)?amazon\.ae\/(.*\/)?dp\/([A-Z0-9]{10})/i;
-            loadingBox.style.display = 'block';
-            productInfo.style.display = 'none';
 
-            Array.from(productForm.elements).forEach(element => element.disabled = true);
 
             if (!urlRegex.test(url)) {
                 showError('Please enter a valid Amazon.ae URL');
                 return;
             }
+
+            Array.from(productForm.elements).forEach(element => element.disabled = true);
+            loadingBox.style.display = 'block';
+            productInfo.style.display = 'none';
 
             url = url.split('?')[0];
 
