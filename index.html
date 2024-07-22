@@ -1,44 +1,95 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Amazon Product Viewer</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        #productFrame {
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .product-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        .gallery {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .gallery-item {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .gallery-item:hover {
+            transform: scale(1.05);
+        }
+
+        #mainImage {
             width: 100%;
-            height: 600px;
-            border: none;
+            max-height: 400px;
+            object-fit: contain;
+            border-radius: 5px;
+            margin-bottom: 20px;
         }
     </style>
 </head>
+
 <body>
     <div class="container mt-5">
-        <h1 class="mb-4">Amazon Product Viewer</h1>
+        <h1 class="text-center mb-4">Amazon Product Viewer</h1>
+
         <form id="productForm">
-            <div class="mb-3">
-                <label for="productUrl" class="form-label">Amazon Product URL:</label>
-                <input type="text" class="form-control" id="productUrl" required>
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="input-group mb-3">
+                        <input type="text" id="productUrl" class="form-control" placeholder="Amazon Product URL">
+                        <button class="btn btn-primary" type="submit" id="viewProduct">View Product</button>
+                    </div>
+                </div>
+
             </div>
-            <button type="submit" class="btn btn-primary">View Product</button>
         </form>
+
         <div id="errorMessage" class="alert alert-danger mt-3" style="display: none;"></div>
-        <div id="productInfo" class="mt-4" style="display: none;">
-            <h2>Product Information</h2>
-            <p><strong>Title:</strong> <span id="productTitle"></span></p>
-            <p><strong>Price:</strong> <span id="productPrice"></span></p>
-            <p><strong>ASIN:</strong> <span id="productAsin"></span></p>
-            <iframe id="productFrame" title="Amazon Product"></iframe>
+
+        <div id="productInfo" class="product-card mt-4" style="display: none;">
+            <h2 class="text-center mb-4">Product Information</h2>
+
+            <div class="text-center">
+                <img id="mainImage" src="" alt="Product Image">
+            </div>
+
+            <div class="gallery" id="imageGallery"></div>
+
+            <div class="mt-4">
+                <h3 id="productTitle" class="mb-3"></h3>
+                <p><strong>Price:</strong> <span id="productPrice"></span></p>
+                <!-- <p><strong>ASIN:</strong> <span id="productAsin"></span></p> -->
+            </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let csrfToken = '';
 
         // Fetch the CSRF token when the page loads
-        window.addEventListener('load', function() {
+        window.addEventListener('load', function () {
             fetch('core/api.php?action=get_token')
                 .then(response => response.json())
                 .then(data => {
@@ -49,7 +100,7 @@
                 });
         });
 
-        document.getElementById('productForm').addEventListener('submit', function(e) {
+        document.getElementById('productForm').addEventListener('submit', function (e) {
             e.preventDefault();
             const url = document.getElementById('productUrl').value;
             validateAndFetchProduct(url);
@@ -58,7 +109,7 @@
         function validateAndFetchProduct(url) {
             const errorMessage = document.getElementById('errorMessage');
             const productInfo = document.getElementById('productInfo');
-            const productFrame = document.getElementById('productFrame');
+            // const productFrame = document.getElementById('productFrame');
 
             // Basic URL validation
             if (!url.includes('amazon.ae')) {
@@ -79,10 +130,15 @@
                 if (data.valid) {
                     errorMessage.style.display = 'none';
                     productInfo.style.display = 'block';
-                    productFrame.src = data.shortUrl;
+                    // productFrame.src = data.shortUrl;
                     document.getElementById('productTitle').textContent = data.title;
                     document.getElementById('productPrice').textContent = data.price;
-                    document.getElementById('productAsin').textContent = data.asin;
+                    // document.getElementById('productAsin').textContent = data.asin;
+                    document.getElementById('productInfo').style.display = 'block';
+
+                    if (data.images.length > 0) {
+                        updateGallery(data.images);
+                    }
                 } else {
                     showError(data.error || 'Invalid Amazon.ae URL');
                 }
@@ -99,6 +155,30 @@
             errorMessage.style.display = 'block';
             document.getElementById('productInfo').style.display = 'none';
         }
+
+
+        function updateGallery(images) {
+            const gallery = document.getElementById('imageGallery');
+            gallery.innerHTML = '';
+            images.forEach((imageUrl, index) => {
+                const img = document.createElement('img');
+                img.src = imageUrl;
+                img.alt = `Product Image ${index + 1}`;
+                img.classList.add('gallery-item');
+                img.addEventListener('click', () => {
+                    document.getElementById('mainImage').src = imageUrl;
+                });
+                gallery.appendChild(img);
+            });
+            // Set the first image as the main image
+            if (images.length > 0) {
+                document.getElementById('mainImage').src = images[0];
+            }
+        }
+
+        // Example usage:
+        // updateGallery(['url1', 'url2', 'url3']);
     </script>
 </body>
+
 </html>
