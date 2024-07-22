@@ -145,8 +145,8 @@ def get_product_images(soup):
         for img in img_tags:
             src = img['src']
             if 'images/I' in src and '_AC_' in src:
-                # Replace thumbnail URL with full-size image URL
-                full_size_src = src.split('._')[0] + "._AC_SL1500_.jpg"
+                # Replace thumbnail URL with the correct size image URL
+                full_size_src = src.split('._')[0] + "._AC_SX679_.jpg"
                 images.append(full_size_src)
     
     # If no images found in gallery, try to get the main product image
