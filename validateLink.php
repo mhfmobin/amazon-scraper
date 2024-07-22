@@ -86,6 +86,7 @@ if ($result['isValid']) {
                 'error' => $pythonResult['error'] ?? null,
                 'price' => $pythonResult['price'] ?? null,
                 'title' => $pythonResult['title'] ?? null,
+                'images' => $pythonResult['images'] ?? null,
                 'elapsedTime' => $pythonResult['elapsed_time'] ?? null
             ]);
         }

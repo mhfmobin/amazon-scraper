@@ -135,6 +135,28 @@ def get_random_headers():
         'Cache-Control': 'max-age=0',
     }
 
+def get_product_images(soup):
+    images = []
+    
+    # Try to get images from the image gallery
+    image_gallery = soup.find('div', {'id': 'altImages'})
+    if image_gallery:
+        img_tags = image_gallery.find_all('img', {'src': True})
+        for img in img_tags:
+            src = img['src']
+            if 'images/I' in src and '_AC_' in src:
+                # Replace thumbnail URL with full-size image URL
+                full_size_src = src.split('._')[0] + "._AC_SL1500_.jpg"
+                images.append(full_size_src)
+    
+    # If no images found in gallery, try to get the main product image
+    if not images:
+        main_image = soup.find('img', {'id': 'landingImage'})
+        if main_image and 'data-old-hires' in main_image.attrs:
+            images.append(main_image['data-old-hires'])
+    
+    return images
+
 def get_amazon_price(url, max_retries=3, backoff_factor=0.3):
     session = requests.Session()
     retry = Retry(total=max_retries,
@@ -175,19 +197,21 @@ def get_amazon_price(url, max_retries=3, backoff_factor=0.3):
         if price_whole and price_fraction:
             price = f"{price_whole.get_text().strip()}{price_fraction.get_text().strip()}"
 
-        return {"error": None, "price": price, "title": title}
+        images = get_product_images(soup)
+
+        return {"error": None, "price": price, "title": title, "images": images}
 
     except RequestException as e:
-        return {"error": str(e), "price": None, "title": None}
+        return {"error": str(e), "price": None, "title": None, "elapsed_time": None, "images": None}
 
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print(json.dumps({"error": "Invalid number of arguments", "price": None, "title": None, "elapsed_time": None}))
+        print(json.dumps({"error": "Invalid number of arguments", "price": None, "title": None, "elapsed_time": None, "images": None}))
         sys.exit(1)
 
     url = sys.argv[1]
-    result = {"error": "Faild to get price", "price": None, "title": None, "elapsed_time": None}
+    result = {"error": "Faild to get price", "price": None, "title": None, "elapsed_time": None, "images": None}
     start_time = time.time()
 
     while result["price"] == None and result["error"] != "unavailable":
