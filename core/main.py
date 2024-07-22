@@ -144,22 +144,16 @@ def get_product_images(soup):
         img_tags = image_gallery.find_all('img', {'src': True})
         for img in img_tags:
             src = img['src']
-            if 'images/I' in src:
-                # Extract the image ID and transform it to the full-size version
-                image_id = src.split('/I/')[1].split('.')[0]
-                full_size_id = image_id[0] + image_id[2:]  # Remove the second character
-                full_size_src = f"https://m.media-amazon.com/images/I/{full_size_id}._AC_SX679_.jpg"
+            if 'images/I' in src and '_AC_' in src:
+                # Replace thumbnail URL with full-size image URL
+                full_size_src = src.split('._')[0] + "._AC_SL1500_.jpg"
                 images.append(full_size_src)
     
     # If no images found in gallery, try to get the main product image
     if not images:
         main_image = soup.find('img', {'id': 'landingImage'})
         if main_image and 'data-old-hires' in main_image.attrs:
-            src = main_image['data-old-hires']
-            if 'images/I' in src:
-                image_id = src.split('/I/')[1].split('.')[0]
-                full_size_src = f"https://m.media-amazon.com/images/I/{image_id}._AC_SX679_.jpg"
-                images.append(full_size_src)
+            images.append(main_image['data-old-hires'])
     
     return images
 
