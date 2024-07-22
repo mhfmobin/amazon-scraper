@@ -145,22 +145,24 @@
         });
 
         function validateAndFetchProduct(url) {
+            const productForm = document.getElementById('productForm');
             const errorMessage = document.getElementById('errorMessage');
             const productInfo = document.getElementById('productInfo');
             const productPriceAed = document.getElementById('productPriceAed');
             const productPriceToman = document.getElementById('productPriceToman');
             const productTitle = document.getElementById('productTitle');
             const loadingBox = document.getElementById('loadingBox');
+            const urlRegex = /https?:\/\/(www\.)?amazon\.ae\/(.*\/)?dp\/([A-Z0-9]{10})/i;
             loadingBox.style.display = 'block';
             productInfo.style.display = 'none';
 
-            // Basic URL validation
-            if (!url.includes('amazon.ae')) {
+            Array.from(productForm.elements).forEach(element => element.disabled = true);
+
+            if (!urlRegex.test(url)) {
                 showError('Please enter a valid Amazon.ae URL');
                 return;
             }
 
-            // Send request to PHP script
             fetch('core/api.php', {
                 method: 'POST',
                 headers: {
@@ -168,27 +170,28 @@
                 },
                 body: JSON.stringify({ url: url, token: csrfToken }),
             })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.valid) {
-                        errorMessage.style.display = 'none';
-                        productInfo.style.display = 'block';
-                        productTitle.textContent = data.title;
-                        productPriceAed.textContent = data.price_aed;
-                        productPriceToman.textContent = data.price_toman;
-                        productInfo.style.display = 'block';
-                        loadingBox.style.display = 'none';
-                        if (data.images.length > 0) {
-                            updateGallery(data.images);
-                        }
-                    } else {
-                        showError(data.error || 'Invalid Amazon.ae URL');
+            .then(response => response.json())
+            .then(data => {
+                if (data.valid) {
+                    errorMessage.style.display = 'none';
+                    productInfo.style.display = 'block';
+                    productTitle.textContent = data.title;
+                    productPriceAed.textContent = data.price_aed;
+                    productPriceToman.textContent = data.price_toman;
+                    productInfo.style.display = 'block';
+                    if (data.images.length > 0) {
+                        updateGallery(data.images);
                     }
-                })
-                .catch(error => {
-                    showError('An error occurred while processing your request');
-                    console.error('Error:', error);
-                });
+                } else {
+                    showError(data.error || 'Invalid Amazon.ae URL');
+                }
+                loadingBox.style.display = 'none';
+                Array.from(productForm.elements).forEach(element => element.disabled = false);
+            })
+            .catch(error => {
+                showError('An error occurred while processing your request');
+                console.error('Error:', error);
+            });
         }
 
         function showError(message) {
