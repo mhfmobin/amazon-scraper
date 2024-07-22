@@ -2,12 +2,10 @@
 session_start();
 header('Content-Type: application/json');
 
-// Generate a secure token
 function generateToken() {
     return bin2hex(random_bytes(32));
 }
 
-// Verify the token
 function verifyToken($token) {
     return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
 }
@@ -84,7 +82,8 @@ if ($result['isValid']) {
                 'shortUrl' => $result['shortUrl'],
                 'asin' => $result['asin'],
                 'error' => $pythonResult['error'] ?? null,
-                'price' => $pythonResult['price'] ?? null,
+                'price_aed' => $pythonResult['price'] ?? null,
+                'price_toman' => tomanPrice($pythonResult['price']) ?? null,
                 'title' => $pythonResult['title'] ?? null,
                 'images' => $pythonResult['images'] ?? null,
                 'elapsedTime' => $pythonResult['elapsed_time'] ?? null
@@ -126,4 +125,14 @@ function validateAndShortenAmazonLink($url) {
             'asin' => null
         ];
     }
+}
+
+function number($str) {
+    $number = str_replace(',', '', $str);
+    return floatval($number);
+}
+
+function tomanPrice($price) {
+    $toman = ceil(number($price) * 16000);
+    return number_format($toman, 0, '.', ',')
 }

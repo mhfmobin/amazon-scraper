@@ -98,8 +98,10 @@
             <div class="gallery" id="imageGallery"></div>
 
             <div class="mt-4">
-                <h3 id="productTitle" class="mb-3"></h3>
-                <p><strong>Price:</strong> <span id="productPrice"></span></p>
+                <p id="productTitle" class="mb-3"></p>
+                <h3>Price:</h3>
+                <h3><span id="productPrice"></span> <small>AED</small> </h3>
+                <h3><span id="productPriceToman"></span> <small>Toman</small> </h3>
                 <!-- <p><strong>ASIN:</strong> <span id="productAsin"></span></p> -->
             </div>
         </div>
@@ -130,7 +132,9 @@
         function validateAndFetchProduct(url) {
             const errorMessage = document.getElementById('errorMessage');
             const productInfo = document.getElementById('productInfo');
-            // const productFrame = document.getElementById('productFrame');
+            const productPriceAed = document.getElementById('productPriceAed');
+            const productPriceToman = document.getElementById('productPriceToman');
+            const productTitle = document.getElementById('productTitle');
             const loadingBox = document.getElementById('loadingBox');
             loadingBox.style.display = 'block';
             productInfo.style.display = 'none';
@@ -154,10 +158,9 @@
                 if (data.valid) {
                     errorMessage.style.display = 'none';
                     productInfo.style.display = 'block';
-                    // productFrame.src = data.shortUrl;
-                    document.getElementById('productTitle').textContent = data.title;
-                    document.getElementById('productPrice').textContent = data.price;
-                    // document.getElementById('productAsin').textContent = data.asin;
+                    productTitle.textContent = data.title;
+                    productPriceAed.textContent = data.price_aed;
+                    productPriceToman.textContent = data.price_toman;
                     productInfo.style.display = 'block';
                     loadingBox.style.display = 'none';
                     if (data.images.length > 0) {
@@ -194,7 +197,6 @@
                 });
                 gallery.appendChild(img);
             });
-            // Set the first image as the main image
             if (images.length > 0) {
                 document.getElementById('mainImage').src = images[0];
             }
