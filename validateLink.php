@@ -35,26 +35,62 @@ if (!verifyToken($token)) {
     exit;
 }
 
+if (empty($url)) {
+    http_response_code(400);
+    echo json_encode(['error' => 'URL is required']);
+    exit;
+}
+
 $result = validateAndShortenAmazonLink($url);
 
 if ($result['isValid']) {
     $command = "python3 main.py " . escapeshellarg($result['shortUrl']);
-    $output = shell_exec($command);
-    $pythonResult = json_decode($output, true);
+    
+    // Execute the Python script and wait for it to complete
+    $descriptorspec = array(
+        0 => array("pipe", "r"),  // stdin
+        1 => array("pipe", "w"),  // stdout
+        2 => array("pipe", "w")   // stderr
+    );
+    
+    $process = proc_open($command, $descriptorspec, $pipes);
+    
+    if (is_resource($process)) {
+        // Read the entire output
+        $output = stream_get_contents($pipes[1]);
+        $errors = stream_get_contents($pipes[2]);
+        
+        // Close all pipes
+        fclose($pipes[0]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        
+        // Close the process
+        $return_value = proc_close($process);
+        
+        if ($return_value !== 0) {
+            echo json_encode(['error' => 'Error executing Python script: ' . $errors]);
+            exit;
+        }
+        
+        $pythonResult = json_decode($output, true);
 
-    if ($pythonResult === null) {
-        echo json_encode(['error' => 'Error processing the URL']);
+        if ($pythonResult === null) {
+            echo json_encode(['error' => 'Error processing the URL: ' . $output]);
+        } else {
+            echo json_encode([
+                'valid' => true,
+                'originalUrl' => $result['originalUrl'],
+                'shortUrl' => $result['shortUrl'],
+                'asin' => $result['asin'],
+                'error' => $pythonResult['error'] ?? null,
+                'price' => $pythonResult['price'] ?? null,
+                'title' => $pythonResult['title'] ?? null,
+                'elapsedTime' => $pythonResult['elapsed_time'] ?? null
+            ]);
+        }
     } else {
-        echo json_encode([
-            'valid' => true,
-            'originalUrl' => $result['originalUrl'],
-            'shortUrl' => $result['shortUrl'],
-            'asin' => $result['asin'],
-            'error' => $pythonResult['error'],
-            'price' => $pythonResult['price'],
-            'title' => $pythonResult['title'],
-            'elapsedTime' => $pythonResult['elapsed_time']
-        ]);
+        echo json_encode(['error' => 'Failed to execute Python script']);
     }
 } else {
     echo json_encode([
@@ -90,5 +126,3 @@ function validateAndShortenAmazonLink($url) {
         ];
     }
 }
-
-
