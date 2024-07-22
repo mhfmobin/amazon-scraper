@@ -1,15 +1,21 @@
 <?php
+session_start();
 header('Content-Type: application/json');
 
-$allowed_ips = [
-    '127.0.0.1',  // localhost
-    '::1',        // localhost IPv6
-];
+// Generate a secure token
+function generateToken() {
+    return bin2hex(random_bytes(32));
+}
 
-$client_ip = $_SERVER['REMOTE_ADDR'];
-if (!in_array($client_ip, $allowed_ips)) {
-    http_response_code(403);
-    echo json_encode(['error' => 'Access denied']);
+// Verify the token
+function verifyToken($token) {
+    return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'get_token') {
+    $token = generateToken();
+    $_SESSION['csrf_token'] = $token;
+    echo json_encode(['token' => $token]);
     exit;
 }
 
@@ -21,10 +27,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $input = json_decode(file_get_contents('php://input'), true);
 $url = $input['url'] ?? '';
+$token = $input['token'] ?? '';
 
-if (empty($url)) {
-    http_response_code(400);
-    echo json_encode(['error' => 'URL is required']);
+if (!verifyToken($token)) {
+    http_response_code(403);
+    echo json_encode(['error' => 'Invalid token']);
     exit;
 }
 
