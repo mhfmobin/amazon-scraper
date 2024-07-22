@@ -46,6 +46,20 @@
             border-radius: 5px;
             margin-bottom: 20px;
         }
+
+        .loading-box {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
     </style>
 </head>
 
@@ -64,6 +78,13 @@
 
             </div>
         </form>
+
+        <div id="loadingBox" class="loading-box">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading product information...</p>
+        </div>
 
         <div id="errorMessage" class="alert alert-danger mt-3" style="display: none;"></div>
 
@@ -110,6 +131,9 @@
             const errorMessage = document.getElementById('errorMessage');
             const productInfo = document.getElementById('productInfo');
             // const productFrame = document.getElementById('productFrame');
+            const loadingBox = document.getElementById('loadingBox');
+            loadingBox.style.display = 'block';
+            productInfo.style.display = 'none';
 
             // Basic URL validation
             if (!url.includes('amazon.ae')) {
@@ -134,8 +158,8 @@
                     document.getElementById('productTitle').textContent = data.title;
                     document.getElementById('productPrice').textContent = data.price;
                     // document.getElementById('productAsin').textContent = data.asin;
-                    document.getElementById('productInfo').style.display = 'block';
-
+                    productInfo.style.display = 'block';
+                    loadingBox.style.display = 'none';
                     if (data.images.length > 0) {
                         updateGallery(data.images);
                     }
