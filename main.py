@@ -8,9 +8,6 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 from requests.exceptions import RequestException
 
-prices = open("prices.csv", "a");
-
-
 def get_random_user_agent():
     user_agents = [
          # Chrome on various platforms
