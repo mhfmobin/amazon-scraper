@@ -179,7 +179,7 @@
                     productPriceAed.textContent = data.price_aed;
                     productPriceToman.textContent = data.price_toman;
                     productInfo.style.display = 'block';
-                    if (data.images.length > 0) {
+                    if (data.images != null) {
                         updateGallery(data.images);
                     }
                 } else {
