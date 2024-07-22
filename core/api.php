@@ -134,5 +134,5 @@ function number($str) {
 
 function tomanPrice($price) {
     $toman = ceil(number($price) * 16000);
-    return number_format($toman, 0, '.', ',')
+    return number_format($toman, 0, '.', ',');
 }
