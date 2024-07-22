@@ -153,6 +153,7 @@
             const productTitle = document.getElementById('productTitle');
             const loadingBox = document.getElementById('loadingBox');
             const urlRegex = /https?:\/\/(www\.)?amazon\.ae\/(.*\/)?dp\/([A-Z0-9]{10})/i;
+            hideError();
 
 
             if (!urlRegex.test(url)) {
@@ -204,6 +205,9 @@
             document.getElementById('productInfo').style.display = 'none';
         }
 
+        function hideError() {
+            errorMessage.style.display = 'none';
+        }
 
         function updateGallery(images) {
             const gallery = document.getElementById('imageGallery');
