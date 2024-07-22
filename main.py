@@ -1,3 +1,5 @@
+import json
+import sys
 import requests
 from bs4 import BeautifulSoup
 import time
@@ -152,34 +154,72 @@ def get_amazon_price(url, max_retries=3, backoff_factor=0.3):
         
         time.sleep(random.uniform(1, 3))
         
-        start_time = time.time()
         response = session.get(url, headers=headers, timeout=10)
-        end_time = time.time()
         response.raise_for_status() 
-        elapsed_time = end_time - start_time
     
         soup = BeautifulSoup(response.content, 'html.parser')
+
+        # CAPTCHA DETECTION
+
+        # if soup.find('form', class_='a-spacing-top-extra-large'):
+        #     return False
+        
+        title = soup.find('span', id='productTitle')
+        title = title.get_text().strip() if title is not None else None
+
+        # check if the product is out of stock
+        if soup.find(string='Currently unavailable.'):
+            return {"error": "unavailable", "price": None, "title": title}
         
         price = None
         price_whole = soup.find('span', class_='a-price-whole')
         price_fraction = soup.find('span', class_='a-price-fraction')
         if price_whole and price_fraction:
             price = f"{price_whole.get_text().strip()}{price_fraction.get_text().strip()}"
-                 
-        return price
+
+        return {"error": None, "price": price, "title": title}
 
     except RequestException as e:
-        print(f"An error occurred while fetching the URL: {url}")
-        print(f"Error details: {str(e)}")
-        return None
+        return {"error": str(e), "price": None, "title": None}
 
-for i in range(len(links.links)):
+# for i in range(len(links.links)):
+#     start_time = time.time()
+#     link = links.links[i]
+#     price = None
+#     while price == None:
+#         price = get_amazon_price(link)
+#     end_time = time.time()
+#     elapsed_time = end_time - start_time
+#     print(f"Elapsed time: {elapsed_time:.4f} seconds")
+#     prices.write(f"{i}, {price}, {elapsed_time:.2}\n")
+
+# while True:
+#     url = input("Enter the URL of the product: ")
+#     start_time = time.time()
+#     price = None
+#     i = 1
+#     while price == None and price != False:
+#         print(f"Attempt {i}")
+#         price = get_amazon_price(url)
+#         i += 1
+#     elapsed_time = time.time() - start_time
+#     if price == False:
+#         print("Product is out of stock.")
+#         continue
+#     print(f"Price: {price}")
+#     print(f"Elapsed time: {elapsed_time:.4f} seconds")
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print(json.dumps({"error": "Invalid number of arguments", "price": None, "title": None, "elapsed_time": None}))
+        sys.exit(1)
+
+    url = sys.argv[1]
+    result = {"error": "Faild to get price", "price": None, "title": None, "elapsed_time": None}
     start_time = time.time()
-    link = links.links[i]
-    price = None
-    while price == None:
-        price = get_amazon_price(link)
-    end_time = time.time()
-    elapsed_time = end_time - start_time
-    print(f"Elapsed time: {elapsed_time:.4f} seconds")
-    prices.write(f"{i}, {price}, {elapsed_time:.2}\n")
+
+    while result["price"] == None and result["error"] != "unavailable":
+        result = get_amazon_price(url)
+    elapsed_time = time.time() - start_time
+    result["elapsed_time"] = elapsed_time
+    print(json.dumps(result))
