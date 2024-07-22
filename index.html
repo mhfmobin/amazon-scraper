@@ -163,6 +163,8 @@
                 return;
             }
 
+            url = url.split('?')[0];
+
             fetch('core/api.php', {
                 method: 'POST',
                 headers: {
