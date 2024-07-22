@@ -4,7 +4,6 @@ import requests
 from bs4 import BeautifulSoup
 import time
 import random
-import links
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 from requests.exceptions import RequestException
@@ -182,32 +181,6 @@ def get_amazon_price(url, max_retries=3, backoff_factor=0.3):
     except RequestException as e:
         return {"error": str(e), "price": None, "title": None}
 
-# for i in range(len(links.links)):
-#     start_time = time.time()
-#     link = links.links[i]
-#     price = None
-#     while price == None:
-#         price = get_amazon_price(link)
-#     end_time = time.time()
-#     elapsed_time = end_time - start_time
-#     print(f"Elapsed time: {elapsed_time:.4f} seconds")
-#     prices.write(f"{i}, {price}, {elapsed_time:.2}\n")
-
-# while True:
-#     url = input("Enter the URL of the product: ")
-#     start_time = time.time()
-#     price = None
-#     i = 1
-#     while price == None and price != False:
-#         print(f"Attempt {i}")
-#         price = get_amazon_price(url)
-#         i += 1
-#     elapsed_time = time.time() - start_time
-#     if price == False:
-#         print("Product is out of stock.")
-#         continue
-#     print(f"Price: {price}")
-#     print(f"Elapsed time: {elapsed_time:.4f} seconds")
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
