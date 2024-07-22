@@ -164,7 +164,9 @@ def get_amazon_price(url, max_retries=3, backoff_factor=0.3):
         title = title.get_text().strip() if title is not None else None
 
         # check if the product is out of stock
-        if soup.find(string='Currently unavailable.'):
+
+        
+        if soup.find(string='Currently unavailable.') or soup.find(string='No featured offers available'):
             return {"error": "unavailable", "price": None, "title": title}
         
         price = None
