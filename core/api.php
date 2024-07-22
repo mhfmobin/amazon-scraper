@@ -85,7 +85,7 @@ if ($result['isValid']) {
                 'price_aed' => $pythonResult['price'] ?? null,
                 'price_toman' => tomanPrice($pythonResult['price']) ?? null,
                 'title' => $pythonResult['title'] ?? null,
-                'images' => $pythonResult['images'] ?? null,
+                'images' => (!is_null($pythonResult['title'])) ? $pythonResult['images'] : null,
                 'elapsedTime' => $pythonResult['elapsed_time'] ?? null
             ]);
         }

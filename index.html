@@ -176,8 +176,8 @@
                     errorMessage.style.display = 'none';
                     productInfo.style.display = 'block';
                     productTitle.textContent = data.title;
-                    productPriceAed.textContent = data.price_aed;
-                    productPriceToman.textContent = data.price_toman;
+                    productPriceAed.textContent = (data.error == "unavailable") ? 'Out of stock!' : data.price_aed;
+                    productPriceToman.textContent = (data.error == "unavailable") ? '-------' : data.price_toman;
                     productInfo.style.display = 'block';
                     if (data.images != null) {
                         updateGallery(data.images);
