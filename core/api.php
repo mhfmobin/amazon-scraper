@@ -133,7 +133,7 @@ function number($str) {
 }
 
 function tomanPrice($price) {
-    $toman = ceil(number($price) * getDirhamPrice());
+    $toman = ceil(number($price) * getDirhamPrice()) / 10;
     return number_format($toman, 0, '.', ',');
 }
 
