@@ -133,6 +133,29 @@ function number($str) {
 }
 
 function tomanPrice($price) {
-    $toman = ceil(number($price) * 16000);
+    $toman = ceil(number($price) * getDirhamPrice());
     return number_format($toman, 0, '.', ',');
+}
+
+function getDirhamPrice() {
+    $descriptorspec = array(
+        0 => array("pipe", "r"),  // stdin
+        1 => array("pipe", "w"),  // stdout
+        2 => array("pipe", "w")   // stderr
+    );
+
+    $process = proc_open('python3 aed.py', $descriptorspec, $pipes);
+
+    if (is_resource($process)) {
+        fclose($pipes[0]);
+        $output = stream_get_contents($pipes[1]);
+        $error = stream_get_contents($pipes[2]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        $return_value = proc_close($process);
+        if ($return_value !== 0) return false;
+        return trim($output);
+    }
+
+    return false;
 }
