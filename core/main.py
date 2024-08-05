@@ -211,9 +211,11 @@ if __name__ == "__main__":
     url = sys.argv[1]
     result = {"error": "Faild to get price", "price": None, "title": None, "elapsed_time": None, "images": None}
     start_time = time.time()
-
-    while result["price"] == None and result["error"] != "unavailable":
+    max_attempts = 10
+    attempts = 0
+    while result["price"] == None and result["error"] != "unavailable" and attempts < max_attempts:
         result = get_amazon_price(url)
+        attempts += 1
     elapsed_time = time.time() - start_time
     result["elapsed_time"] = elapsed_time
     print(json.dumps(result))
